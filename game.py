@@ -24,6 +24,16 @@ class Game:
         self.game_over_reason = ""
         self.status_message = "Red's turn"
 
+    def update_status(self) -> None:
+        if self.is_game_over:
+            return
+        if self.forced_jump_pos is not None:
+            self.status_message = "Continue jump with selected piece"
+        elif logic.player_has_capture(self.board, self.current_player):
+            self.status_message = f"{self.current_player}'s turn - Capture required"
+        else:
+            self.status_message = f"{self.current_player}'s turn"
+
     def select_piece(self, position: Position) -> None:
         if self.is_game_over or self.forced_jump_pos is not None:
             return
@@ -35,6 +45,25 @@ class Game:
         if moves:
             self.selected_pos = position
             self.legal_moves = moves
+            self.update_status()
+
+    def reset_match(self) -> None:
+        self.match_stats.reset()
+        self.new_game()
+
+    def scoreboard(self, player: str) -> dict[str, int]:
+        regular, kings = logic.count_pieces(self.board, player)
+        stats = self.match_stats
+        if player == RED:
+            captures = self.red_captures
+            wins, losses, draws = stats.red_wins, stats.red_losses, stats.red_draws
+        else:
+            captures = self.black_captures
+            wins, losses, draws = stats.black_wins, stats.black_losses, stats.black_draws
+        return {
+            "regular": regular, "kings": kings, "captures": captures,
+            "wins": wins, "losses": losses, "draws": draws,
+        }
 
     def handle_square_click(self, position: Position) -> None:
         if self.is_game_over or not logic.is_playable(position):
@@ -66,7 +95,12 @@ class Game:
                 self.legal_moves = continuations
                 self.status_message = "Continue jump with selected piece"
                 return True
+        moving_player = self.current_player
         self.complete_turn(captured or promoted)
+        if promoted:
+            self.status_message = (
+                f"{moving_player} piece promoted to King. {self.status_message}"
+            )
         return True
 
     def complete_turn(self, progress_made: bool) -> None:
@@ -87,7 +121,7 @@ class Game:
             self.finish_game(None, "80 turns without capture or promotion")
             return
         self.current_player = logic.opponent(self.current_player)
-        self.status_message = f"{self.current_player}'s turn"
+        self.update_status()
 
     def finish_game(self, winner: str | None, reason: str) -> None:
         if self.is_game_over:

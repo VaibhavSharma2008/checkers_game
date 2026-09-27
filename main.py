@@ -6,8 +6,11 @@ from game import Game
 import ui
 
 
-def handle_event(game: Game, event: pygame.event.Event,
-                 pending_action: str | None) -> tuple[bool, str | None]:
+def handle_event(
+    game: Game,
+    event: pygame.event.Event,
+    pending_action: str | None,
+) -> tuple[bool, str | None]:
     """Return (keep_running, pending_confirmation) after one event."""
     if event.type == pygame.QUIT:
         return True, "exit"

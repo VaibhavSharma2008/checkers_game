@@ -8,13 +8,15 @@ BLACK = "Black"
 BOARD_SIZE = 8
 
 Position: TypeAlias = tuple[int, int]
-Board: TypeAlias = list[list["Piece | None"]]
 
 
 @dataclass
 class Piece:
     color: str
     is_king: bool = False
+
+
+Board: TypeAlias = list[list[Piece | None]]
 
 
 @dataclass

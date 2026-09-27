@@ -61,8 +61,12 @@ class Game:
             captures = self.black_captures
             wins, losses, draws = stats.black_wins, stats.black_losses, stats.black_draws
         return {
-            "regular": regular, "kings": kings, "captures": captures,
-            "wins": wins, "losses": losses, "draws": draws,
+            "regular": regular,
+            "kings": kings,
+            "captures": captures,
+            "wins": wins,
+            "losses": losses,
+            "draws": draws,
         }
 
     def handle_square_click(self, position: Position) -> None:
@@ -88,7 +92,9 @@ class Game:
             else:
                 self.black_captures += 1
             # Crowning ends a capture turn, even if a new King could jump back.
-            continuations = [] if promoted else logic.get_captures(self.board, destination)
+            continuations = (
+                [] if promoted else logic.get_captures(self.board, destination)
+            )
             if continuations:
                 self.selected_pos = destination
                 self.forced_jump_pos = destination
@@ -120,7 +126,7 @@ class Game:
         if self.no_progress_turns >= 80:
             self.finish_game(None, "80 turns without capture or promotion")
             return
-        self.current_player = logic.opponent(self.current_player)
+        self.current_player = other_player
         self.update_status()
 
     def finish_game(self, winner: str | None, reason: str) -> None:

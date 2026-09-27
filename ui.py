@@ -28,9 +28,18 @@ BUTTONS = {
 CONFIRM_RECT = pygame.Rect(320, 432, 184, 42)
 CANCEL_RECT = pygame.Rect(536, 432, 184, 42)
 CONFIRMATION_MESSAGES = {
-    "new_game": ("Start a new game?", "The unfinished game will be abandoned. Match scores are kept."),
-    "reset_match": ("Reset the match?", "All wins, losses and draws will be cleared. A fresh game will start."),
-    "exit": ("Exit Checkers?", "The game will close. Match scores are kept only during this session."),
+    "new_game": (
+        "Start a new game?",
+        "The unfinished game will be abandoned. Match scores are kept.",
+    ),
+    "reset_match": (
+        "Reset the match?",
+        "All wins, losses and draws will be cleared. A fresh game will start.",
+    ),
+    "exit": (
+        "Exit Checkers?",
+        "The game will close. Match scores are kept only during this session.",
+    ),
 }
 
 
@@ -75,14 +84,16 @@ def draw_pieces(screen: pygame.Surface, game: Game) -> None:
             color = RED_PIECE if piece.color == RED else BLACK_PIECE
             pygame.draw.circle(screen, (25, 35, 37), (x, y + 3), 29)
             pygame.draw.circle(screen, color, center, 28)
-            pygame.draw.circle(screen, (227, 170, 143) if piece.color == RED else MUTED,
-                               center, 27, 2)
-            pygame.draw.circle(screen, (255, 210, 169) if piece.color == RED else (102, 116, 130),
-                               center, 21, 1)
+            rim = (227, 170, 143) if piece.color == RED else MUTED
+            inner_rim = (255, 210, 169) if piece.color == RED else (102, 116, 130)
+            pygame.draw.circle(screen, rim, center, 27, 2)
+            pygame.draw.circle(screen, inner_rim, center, 21, 1)
             if piece.is_king:
-                crown = [(x - 15, y + 7), (x - 18, y - 10), (x - 7, y - 3),
-                         (x, y - 15), (x + 7, y - 3), (x + 18, y - 10),
-                         (x + 15, y + 7)]
+                crown = [
+                    (x - 15, y + 7), (x - 18, y - 10), (x - 7, y - 3),
+                    (x, y - 15), (x + 7, y - 3), (x + 18, y - 10),
+                    (x + 15, y + 7),
+                ]
                 pygame.draw.polygon(screen, ACCENT, crown)
                 pygame.draw.line(screen, ACCENT, (x - 14, y + 12), (x + 14, y + 12), 3)
             if game.forced_jump_pos is not None and (row, col) != game.forced_jump_pos:
@@ -128,22 +139,34 @@ def draw_hud(screen: pygame.Surface, game: Game, fonts: dict) -> None:
     pygame.draw.rect(screen, PANEL, HUD_RECT, border_radius=12)
     title = "Game complete" if game.is_game_over else f"{game.current_player}'s turn"
     draw_text(screen, title, fonts["heading"], ACCENT, (692, 120))
-    draw_wrapped_text(screen, game.status_message, fonts["body"], TEXT,
-                      pygame.Rect(692, 162, 296, 100))
+    draw_wrapped_text(
+        screen, game.status_message, fonts["body"], TEXT,
+        pygame.Rect(692, 162, 296, 100),
+    )
     for player, y in ((RED, 278), (BLACK, 397)):
         score = game.scoreboard(player)
         pygame.draw.rect(screen, BACKGROUND, (688, y, 304, 105), border_radius=8)
         color = RED_PIECE if player == RED else MUTED
         pygame.draw.circle(screen, color, (706, y + 21), 6)
         draw_text(screen, player, fonts["heading"], TEXT, (721, y + 10))
-        pieces = f"Pieces {score['regular']}    Kings {score['kings']}    Captures {score['captures']}"
-        results = f"Wins {score['wins']}      Losses {score['losses']}      Draws {score['draws']}"
+        pieces = (
+            f"Regular {score['regular']}    Kings {score['kings']}"
+            f"    Captures {score['captures']}"
+        )
+        results = (
+            f"Wins {score['wins']}      Losses {score['losses']}"
+            f"      Draws {score['draws']}"
+        )
         draw_text(screen, pieces, fonts["small"], MUTED, (700, y + 44))
         draw_text(screen, results, fonts["small"], TEXT, (700, y + 74))
-    draw_text(screen, f"No-progress turns: {game.no_progress_turns} / 80",
-              fonts["small"], MUTED, (692, 525))
-    draw_text(screen, "Select a checker, then a highlighted square.",
-              fonts["small"], MUTED, (32, 725))
+    draw_text(
+        screen, f"No-progress turns: {game.no_progress_turns} / 80",
+        fonts["small"], MUTED, (692, 525),
+    )
+    draw_text(
+        screen, "Select a checker, then a highlighted square.",
+        fonts["small"], MUTED, (32, 725),
+    )
 
 
 def draw_button(screen, rect, label, font, primary=False) -> None:
@@ -154,8 +177,9 @@ def draw_button(screen, rect, label, font, primary=False) -> None:
 
 
 def draw_controls(screen: pygame.Surface, fonts: dict) -> None:
-    for action, label in (("new_game", "New Game"), ("reset_match", "Reset Match"),
-                          ("exit", "Exit")):
+    for action, label in (
+        ("new_game", "New Game"), ("reset_match", "Reset Match"), ("exit", "Exit"),
+    ):
         draw_button(screen, BUTTONS[action], label, fonts["body"], action == "new_game")
 
 
@@ -198,8 +222,9 @@ def draw_confirmation(screen: pygame.Surface, action: str, fonts: dict) -> None:
     pygame.draw.rect(screen, ACCENT, panel, 2, border_radius=14)
     title, message = CONFIRMATION_MESSAGES[action]
     draw_text(screen, title, fonts["title"], TEXT, (312, 289))
-    draw_wrapped_text(screen, message, fonts["body"], MUTED,
-                      pygame.Rect(312, 345, 416, 70))
+    draw_wrapped_text(
+        screen, message, fonts["body"], MUTED, pygame.Rect(312, 345, 416, 70),
+    )
     draw_button(screen, CONFIRM_RECT, "Confirm", fonts["body"], True)
     draw_button(screen, CANCEL_RECT, "Cancel", fonts["body"])
 
@@ -212,8 +237,12 @@ def get_confirmation_choice(mouse_position: tuple[int, int]) -> bool | None:
     return None
 
 
-def draw_game(screen: pygame.Surface, game: Game, fonts: dict,
-              pending_action: str | None = None) -> None:
+def draw_game(
+    screen: pygame.Surface,
+    game: Game,
+    fonts: dict,
+    pending_action: str | None = None,
+) -> None:
     screen.fill(BACKGROUND)
     draw_board(screen)
     draw_pieces(screen, game)
